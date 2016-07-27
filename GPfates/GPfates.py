@@ -7,13 +7,6 @@ from GPclust import OMGP
 from .gp_utils import bifurcation_statistics
 from .gp_utils import identify_bifurcation_point
 
-def breakpoint_linear(x, ts, k1, k2, c1):
-    '''Function representing a step-wise linear curve with one
-    breakpoint located at ts.
-    '''
-    return np.piecewise(x, [x < ts], [lambda x: k1 * x + c1,
-                                      lambda x: k2 * x + (k1 - k2) * ts + c1])
-
 class GPfates(object):
     ''' An object for GPfates analysis
     '''
@@ -70,6 +63,8 @@ class GPfates(object):
         gplvm.optimize(max_iters=2000, messages=True)
 
     def store_dr(self, name='bgplvm', dims=[0, 1]):
+        ''' Put a low-dimensional representation in the sample table.
+        '''
         gplvm = self.dr_models[name]
         for d in dims:
             self.s['{}_{}'.format(name, d)] = gplvm.X.mean[:, [d]]

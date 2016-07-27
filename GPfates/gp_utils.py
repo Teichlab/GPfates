@@ -1,6 +1,16 @@
 import numpy as np
+from scipy import optimize
 from GPclust import OMGP
 from tqdm import tqdm
+
+
+def breakpoint_linear(x, ts, k1, k2, c1):
+    '''Function representing a step-wise linear curve with one
+    breakpoint located at ts.
+    '''
+    return np.piecewise(x, [x < ts], [lambda x: k1 * x + c1,
+                                      lambda x: k2 * x + (k1 - k2) * ts + c1])
+
 
 def identify_bifurcation_point(omgp, n_splits=30):
     ''' Linear breakpoint model to infer drastic likelihood decrease
@@ -26,6 +36,7 @@ def identify_bifurcation_point(omgp, n_splits=30):
     p, e = optimize.curve_fit(breakpoint_linear, x, y)
 
     return p[0]
+
 
 def bifurcation_statistics(omgp_gene, expression_matrix):
     ''' Given an OMGP model and an expression matrix, evaluate how well
