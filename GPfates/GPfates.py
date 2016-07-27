@@ -18,6 +18,8 @@ class GPfates(object):
         self.dr_models = {}
 
     def _gene_filter(self, gene_filter=None):
+        ''' Helper for the common operation of optioanlly filtering genes.
+        '''
         if not gene_filter:
             Y = self.e
         else:
