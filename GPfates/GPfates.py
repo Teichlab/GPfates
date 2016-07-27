@@ -35,12 +35,19 @@ class GPfates(object):
     def infer_pseudotime(self, priors=None, gene_filter=None, s_columns=None):
         ''' Infer pseudotiem using a 1-dimensional Bayesian GPLVM
         '''
-        Y = self._gene_filter(gene_filter).as_matrix().T
-        self.time_model = GPy.models.BayesianGPLVM(Y, 1)
+        if s_columns:
+            Y = self.s[s_columns].as_matrix()
+        else:
+            Y = self._gene_filter(gene_filter).as_matrix().T
+
+        self.time_model = GPy.models.BayesianGPLVM(Y, 1, init='random')
+
+        self.time_model.rbf.lengthscale.constrain_fixed(2., warning=False)
+        self.time_model.rbf.variance.constrain_fixed(200., warning=False)
 
         if priors is not None:
             for i, p in enumerate(priors):
-                prior = GPy.priors.Gaussian(p, 1.)
+                prior = GPy.priors.Gaussian(p, 2.)
                 self.time_model.X.mean[i, [0]].set_prior(prior, warning=False)
 
         self.time_model.optimize(max_iters=2000, messages=True)
