@@ -22,6 +22,7 @@ class GPfates(object):
 
         self.s = sample_info
         self.e = expression_matrix[sample_info.index]
+        self.dr_models = {}
 
     def _gene_filter(self, gene_filter=None):
         if not gene_filter:
@@ -54,19 +55,28 @@ class GPfates(object):
     def dimensionality_reduction(self, gene_filter=None, name='bgplvm'):
         ''' Use a Bayesian GPLVM to infer a low-dimensional representation
         '''
-        Y = self._gene_filter(gene_filter)
+        Y = self._gene_filter(gene_filter).as_matrix().T
 
-        gplvm = GPy.models.BayesianGPLVM(5, Y)
+        gplvm = GPy.models.BayesianGPLVM(Y, 5)
         self.dr_models[name] = gplvm
 
-        gplvm.optimize()
+        gplvm.optimize(max_iters=2000, messages=True)
 
-    def model_fates(self, t='pseudotime', X=['bgplvm_1', 'bgplvm_2'], step_length=0.01):
+    def store_dr(self, name='bgplvm', dims=[0, 1]):
+        gplvm = self.dr_models[name]
+        for d in dims:
+            self.s['{}_{}'.format(name, d)] = gplvm.X.mean[:, [d]]
+
+    def model_fates(self, t='pseudotime', X=['bgplvm_0', 'bgplvm_1'], C=2, step_length=0.01):
         ''' Model multiple cell fates using OMGP
         '''
-        self.fate_model = OMGP(self.s[[t]], self.s[X], K=2, prior='DP')
+        self.fate_model = OMGP(self.s[[t]].as_matrix(), self.s[X].as_matrix(), K=C, prior_Z='DP')
+
+        self.fate_model.variance.constrain_fixed(0.05)
+        self.fate_model['(.*)lengthscale'].constrain_fixed(1.)
+
         self.fate_model.hyperparam_interval = 1e3
-        self.fate_model.optimize(step_length=step_length)
+        self.fate_model.optimize(maxiter=1000, step_length=step_length)
 
     def identify_bifurcation_point(self, n_splits=30):
         ''' Linear breakpoint model to infer drastic likelihood decrease
