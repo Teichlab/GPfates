@@ -82,6 +82,15 @@ class GPfates(object):
         self.fate_model.hyperparam_interval = 1e3
         self.fate_model.optimize(maxiter=1000, step_length=step_length)
 
+    def make_fates_viz(self, s_columns=['bgplvm_0', 'bgplvm_1']):
+        ''' Make an OMGP model based on the fate model which visualizes the
+        trends in a representative space.
+        '''
+        XY = self.s[s_columns].as_matrix()
+        self.fates_viz = OMGP(self.fate_model.X, XY, prior_Z='DP')
+        self.fates_viz[:] = self.fate_model[:]
+        self.fates_viz.phi = self.fate_model.phi
+
     def identify_bifurcation_point(self, n_splits=30):
         ''' Linear breakpoint model to infer drastic likelihood decrease
         '''
