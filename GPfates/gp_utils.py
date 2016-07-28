@@ -1,7 +1,9 @@
 import numpy as np
 from scipy import optimize
-from GPclust import OMGP
+import pandas as pd
 from tqdm import tqdm
+from GPy.util.linalg import pdinv, dpotrs
+from GPclust import OMGP
 
 
 def breakpoint_linear(x, ts, k1, k2, c1):
@@ -10,6 +12,32 @@ def breakpoint_linear(x, ts, k1, k2, c1):
     '''
     return np.piecewise(x, [x < ts], [lambda x: k1 * x + c1,
                                       lambda x: k2 * x + (k1 - k2) * ts + c1])
+
+
+def omgp_model_bound(omgp):
+    ''' Calculate the part of the omgp bound which does not depend
+    on the response variable.
+    '''
+    GP_bound = 0.0
+
+    LBs = []
+    # Precalculate the bound minus data fit,
+    # and LB matrices used for data fit term.
+    for i, kern in enumerate(omgp.kern):
+        K = kern.K(omgp.X)
+        B_inv = np.diag(1. / ((omgp.phi[:, i] + 1e-6) / omgp.variance))
+        Bi, LB, LBi, Blogdet = pdinv(K + B_inv)
+        LBs.append(LB)
+
+        # Penalty
+        GP_bound -= 0.5 * Blogdet
+
+        # Constant
+        GP_bound -= 0.5 * omgp.D * np.einsum('j,j->', omgp.phi[:, i], np.log(2 * np.pi * omgp.variance))
+
+    model_bound = GP_bound + omgp.mixing_prop_bound() + omgp.H
+
+    return model_bound, LBs
 
 
 def identify_bifurcation_point(omgp, n_splits=30):
