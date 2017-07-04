@@ -1,0 +1,5 @@
+numpy
+pandas
+tqdm
+GPy
+git+https://github.com/SheffieldML/GPclust.git
