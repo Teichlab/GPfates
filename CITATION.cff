@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+title: GPfates
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "Svensson"
+    given-names: "Valentine"
+    orcid: "https://orcid.org/0000-0002-9217-2330"
+repository-code: ""
+url: ""
+abstract: "Model transcriptional cell fates as mixtures of Gaussian Processes"
+license: ""
+version: "1.0.1"
+doi: 10.1126/sciimmunol.aal2192

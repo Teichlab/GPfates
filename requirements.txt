@@ -2,4 +2,6 @@ numpy
 pandas
 tqdm
 GPy
-git+https://github.com/SheffieldML/GPclust.git
+matplotlib
+scipy
+GPclust @ git+https://github.com/SheffieldML/GPclust.git

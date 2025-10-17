@@ -113,7 +113,7 @@ def bifurcation_statistics(omgp_gene, expression_matrix):
 
     # Calculate the likelihoods of the models for every gene
     for gene in tqdm(expression_matrix.index):
-        Y = expression_matrix.ix[gene]
+        Y = expression_matrix.loc[gene]
         YYT = np.outer(Y, Y)
 
         for precalc, column in zip(precalcs, column_list):
@@ -122,7 +122,7 @@ def bifurcation_statistics(omgp_gene, expression_matrix):
             for LB in LBs:
                 GP_data_fit -= .5 * dpotrs(LB, YYT)[0].trace()
 
-            bif_stats.ix[gene, column] = model_bound + GP_data_fit
+            bif_stats.loc[gene, column] = model_bound + GP_data_fit
 
     bif_stats['phi0_corr'] = expression_matrix.corrwith(pd.Series(omgp_gene.phi[:, 0], index=expression_matrix.columns), 1)
     bif_stats['D'] = bif_stats['bif_ll'] - bif_stats['amb_ll']
